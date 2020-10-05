@@ -6,18 +6,17 @@ import java.util.*;
 
 
 public class App {
+    static ArrayList<Product> inputProducts = new ArrayList<>();
+    static File newFile = new File("./data/newFile.csv");
 
     public static void main(String[] args) {
 
         Scanner scan = new Scanner(System.in);
         int select = 4;
-        int id;
 
 
+        if (inputProducts.size() != 0) reader(newFile);
         while(select != 0) {
-
-        File newFile = new File("./data/newFile.csv");
-
         // MENU
         System.out.println("\t~~~~~ WELCOME TO APPLE SHOP ~~~~~\n");
         System.out.println("Select one of the options: ");
@@ -26,48 +25,33 @@ public class App {
         System.out.println("~ 3\tDelete product by name ~");
         System.out.println("~ 0\tExit ~");
         select = Integer.parseInt(scan.nextLine());
-        ArrayList<Product> inputProducts = new ArrayList<>();
+
 
         switch (select) {
             case 0 :
                 System.out.println("[ E X I T I N G ...... ]");
                 break;
             case 1 :
-                addProduct(newFile, inputProducts);
+                addProduct(newFile);
+                reWrite(newFile);
+
                 break;
             case 2 :
                 showInConsole(newFile);
                 break;
             case 3 :
-                Scanner deleteScanner = new Scanner(System.in);
-                newFile = new File("./data/newFile.csv");
-                try {
-                    File temp = File.createTempFile("newFile", ".csv", newFile.getParentFile());
-                    System.out.println("Enter product name to remove it --");
-                    String delete = deleteScanner.nextLine();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(newFile)));
-                    PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(temp)));
-                    for (String line; (line = reader.readLine()) != null;) {
-                        line = line.replaceAll(delete, "");
-                        writer.println(line);
-                    }
-
-                    reader.close();
-                    writer.close();
-                    newFile.delete();
-                    temp.renameTo(newFile);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
+                System.out.println("Enter product index: ");
+                int index = scan.nextInt();
+                scan.nextLine();
+                inputProducts.remove(index);
+                reWrite(newFile);
             }
         }
     }
-    static void addProduct(File newFile, ArrayList arrProducts) {
+    // Add and write to file
+    static void addProduct(File newFile) {
         Scanner inputScanner = new Scanner(System.in);
-        System.out.println("\tPlease enter product name and price");
+        System.out.println("\tPlease enter product ID, name and price");
         System.out.println("Product ID --");
         int ID = Integer.parseInt(inputScanner.nextLine());
         System.out.println("Product name --");
@@ -75,21 +59,10 @@ public class App {
         System.out.println("Product price --");
         double price = Double.parseDouble(inputScanner.nextLine());
         Product products = new Product(ID, name, price);
-        arrProducts.add(products);
-        FileWriter fw;
-        try {
-            fw = new FileWriter(newFile, true);
-            fw.write("\n");
-            fw.write("-------------------------");
-            fw.write("\n");
-            fw.write(String.valueOf(arrProducts));
-            fw.close();
-        } catch (FileNotFoundException e) {
-            System.err.println(e.getMessage());
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        }
+        inputProducts.add(products);
+
     }
+    // Read file
     static void showInConsole(File newFile) {
         try {
             FileReader fileReader = new FileReader(newFile);
@@ -105,8 +78,38 @@ public class App {
                 e.printStackTrace();
             }
         }
-
-
+    static  void reWrite(File newFile) {
+        FileWriter fw;
+        try {
+            fw = new FileWriter(newFile, false);
+            for (Product p: inputProducts
+                 ) {
+                fw.write(String.valueOf(p));
+            }
+            fw.close();
+        } catch (FileNotFoundException e) {
+            System.err.println(e.getMessage());
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+    static void reader(File newFile) {
+        try {
+            FileReader fileReader = new FileReader(newFile);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String fileLine = bufferedReader.readLine();
+            while (fileLine != null) {
+                String[] readFile = fileLine.split(":");
+                Product products = new Product(Integer.parseInt(readFile[1]), readFile[3], Double.parseDouble(readFile[5]));
+                inputProducts.add(products);
+                fileLine = bufferedReader.readLine();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     }
 
 
